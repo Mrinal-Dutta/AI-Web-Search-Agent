@@ -54,7 +54,7 @@ Rules:
 """
 )
 
-# Chat History
+# Chat memory
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
@@ -63,16 +63,17 @@ if st.button("🗑️ New Chat"):
     st.session_state.messages = []
     st.rerun()
 
-# Display History
+# Show previous messages
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# User Input
+# User input
 question = st.chat_input("Ask me anything...")
 
 if question:
-    # Show user message
+
+    # Save user question
     st.session_state.messages.append(
         {"role": "user", "content": question}
     )
@@ -80,17 +81,19 @@ if question:
     with st.chat_message("user"):
         st.markdown(question)
 
-    # AI Response
+    # Send previous chat history to agent
     with st.chat_message("assistant"):
         with st.spinner("Searching and thinking..."):
-            response = agent.invoke(
-                {"messages": [{"role": "user", "content": question}]}
-            )
 
-            answer = response["messages"][-1].content
+            res = agent.invoke({
+                "messages": st.session_state.messages
+            })
+
+            answer = res["messages"][-1].content
+
             st.markdown(answer)
 
-    # Save AI response
+    # Save AI answer
     st.session_state.messages.append(
         {"role": "assistant", "content": answer}
     )
