@@ -12,28 +12,27 @@ st.set_page_config(
     layout="centered"
 )
 
-# App design
 st.title("🔎 AI Web Search Agent")
 st.caption("Ask anything. I can search the web and help you find answers.")
 
-# API keys
+# API Keys
 groq_key = st.secrets["GROQ_API_KEY"]
 serper_key = st.secrets["SERPER_API_KEY"]
 
-# Google search setup
+# Google Search Setup
 google_search = GoogleSerperAPIWrapper(
     serper_api_key=serper_key
 )
 
-# Search tool
+# Search Tool
 @tool
 def web_search(query: str) -> str:
-    """Search Google for latest information about a topic."""
+    """Search Google for current information and answer factual questions."""
     return google_search.run(query)
 
-# AI model
+# AI Model
 llm = ChatGroq(
-    model="openai/gpt-oss-120b",
+    model="openai/gpt-oss-20b",
     api_key=groq_key,
     temperature=0
 )
@@ -43,40 +42,36 @@ agent = create_agent(
     model=llm,
     tools=[web_search],
     system_prompt="""
-You are an AI web search assistant.
+You are an AI Web Search Assistant.
 
 Rules:
-- Always use web_search for current information, news, sports results and factual questions.
-- Search the web before answering. Never guess.
-- Carefully read and verify the search results before giving an answer.
-- Use only information supported by search results.
-- If the information is unavailable or not confirmed, clearly say so.
-- Never invent dates, winners, scores, events or facts.
-- Give direct, simple and concise answers.
+- Use web_search for current information, news, sports and factual questions.
+- Search before answering whenever information needs verification.
+- Never invent facts, dates, scores or results.
+- If reliable information is unavailable, clearly say so.
+- Give simple, short and direct answers.
 - Answer in 1-3 sentences unless the user asks for details.
-- If the user asks for a short answer, keep it very short.
 """
 )
 
-# Chat memory
+# Chat History
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# New chat button
+# New Chat
 if st.button("🗑️ New Chat"):
     st.session_state.messages = []
     st.rerun()
 
-# Show previous messages
+# Display History
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# User input
+# User Input
 question = st.chat_input("Ask me anything...")
 
 if question:
-
     # Show user message
     st.session_state.messages.append(
         {"role": "user", "content": question}
@@ -85,18 +80,17 @@ if question:
     with st.chat_message("user"):
         st.markdown(question)
 
-    # AI response
+    # AI Response
     with st.chat_message("assistant"):
-        with st.spinner("Thinking and searching..."):
-
+        with st.spinner("Searching and thinking..."):
             response = agent.invoke(
-                {"messages": st.session_state.messages}
+                {"messages": [{"role": "user", "content": question}]}
             )
 
             answer = response["messages"][-1].content
             st.markdown(answer)
 
-    # Save AI response in memory
+    # Save AI response
     st.session_state.messages.append(
         {"role": "assistant", "content": answer}
     )
