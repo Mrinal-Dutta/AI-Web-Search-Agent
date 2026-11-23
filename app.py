@@ -1,6 +1,6 @@
 
 import streamlit as st
-from langchain_groq import ChatGroq
+from langchain_openai import ChatOpenAI
 from langchain.agents import create_agent
 from langchain_community.utilities import GoogleSerperAPIWrapper
 from langchain_core.tools import tool
@@ -16,7 +16,7 @@ st.title("🔎 AI Web Search Agent")
 st.caption("Ask anything. I can search the web and help you find answers.")
 
 # API Keys
-groq_key = st.secrets["GROQ_API_KEY"]
+api_key=st.secrets["OPENAI_API_KEY"]
 serper_key = st.secrets["SERPER_API_KEY"]
 
 # Google Search Setup
@@ -32,9 +32,10 @@ def web_search(query: str) -> str:
     return google_search.run(query)
 
 # AI Model
-llm = ChatGroq(
-    model="openai/gpt-oss-20b",
-    api_key=groq_key,
+llm = ChatOpenAI(
+    model="openai/gpt-oss-120b",
+    api_key=st.secrets["OPENAI_API_KEY"],
+    base_url="https://openrouter.ai/api/v1",
     temperature=0
 )
 
