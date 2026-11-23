@@ -21,7 +21,8 @@ serper_key = st.secrets["SERPER_API_KEY"]
 
 # Google Search Setup
 google_search = GoogleSerperAPIWrapper(
-    serper_api_key=serper_key
+    serper_api_key=serper_key,
+    k=3
 )
 
 # Search Tool
@@ -42,15 +43,10 @@ agent = create_agent(
     model=llm,
     tools=[web_search],
     system_prompt="""
-You are an AI Web Search Assistant.
-
-Rules:
-- Use web_search for current information, news, sports and factual questions.
-- Search before answering whenever information needs verification.
-- Never invent facts, dates, scores or results.
-- If reliable information is unavailable, clearly say so.
-- Give simple, short and direct answers.
-- Answer in 1-3 sentences unless the user asks for details.
+- Use web_search for current information, latest news, facts, and questions that need verification.
+- For simple follow-up questions about previous answers, use conversation history when sufficient.
+- Avoid unnecessary searches.
+- Never guess facts that require verification.
 """
 )
 
